@@ -1,0 +1,140 @@
+---
+- hosts: appservers
+
+  pre_tasks:
+    - name: Install Java
+      apt:
+        name: openjdk-21-jdk
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Install PostgreSQL client tools (psql) with retries
+      apt:
+        name: postgresql-client
+        state: present
+        update_cache: yes
+      become: yes
+      register: apt_result
+      retries: 5
+      delay: 30
+      until: apt_result is succeeded
+
+  vars:
+    appdir: "{{ ansible_user_dir }}/spring-app"
+    branch: "main"
+
+  tasks:
+    - name: Debug appdir
+      debug:
+        msg: "App directory is {{ appdir }}"
+
+    - name: Clone the Spring repository
+      git:
+        repo: "https://github.com/AthosExarchou/ds-exc-2024.git"
+        dest: "{{ appdir }}"
+        version: "{{ branch }}"
+        force: yes
+
+    - name: Build Spring application
+      block:
+        - name: Try to build the Spring application
+          command: ./mvnw package -Dmaven.test.skip
+          args:
+            chdir: "{{ appdir }}"
+
+      rescue:
+        - name: Fetch SHA-512 checksum for Maven 3.9.9
+          get_url:
+            url: https://downloads.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.zip.sha512
+            dest: /tmp/maven_sha512.txt
+            validate_certs: yes
+            force: yes
+
+        - name: Read the SHA-512 checksum from the file
+          command: cat /tmp/maven_sha512.txt
+          register: sha512_checksum
+
+        - name: Fix maven-wrapper.properties with correct SHA
+          replace:
+            path: "{{ appdir }}/.mvn/wrapper/maven-wrapper.properties"
+            regexp: '^distributionSha'
+            replace: "distributionSha512Sum={{ sha512_checksum.stdout }}"
+
+        - name: Clean up SHA temp file
+          file:
+            path: /tmp/maven_sha512.txt
+            state: absent
+          when: sha512_checksum is defined
+
+        - name: Retry build after SHA fix
+          command: ./mvnw package -Dmaven.test.skip
+          args:
+            chdir: "{{ appdir }}"
+
+    - name: Install Spring systemd service
+      template:
+        src: ../files/spring.service.j2
+        dest: /etc/systemd/system/spring.service
+      become: yes
+      notify: restart spring
+
+    - name: Enable and start Spring service
+      service:
+        name: spring
+        state: started
+        enabled: yes
+      become: yes
+
+    - name: Install Nginx
+      apt:
+        name: nginx
+        update_cache: yes
+      become: yes
+
+    - name: Copy Nginx config
+      template:
+        src: ../files/nginx.http.j2
+        dest: /etc/nginx/sites-available/spring
+      become: yes
+
+    - name: Enable Spring Nginx site
+      file:
+        src: /etc/nginx/sites-available/spring
+        dest: /etc/nginx/sites-enabled/spring
+        state: link
+      become: yes
+      notify: restart nginx
+
+    - name: Disable default Nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      become: yes
+      notify: restart nginx
+
+    - name: Verify database connection from Spring Boot server using psql
+      become: yes
+      become_user: azureuser
+      shell: |
+        PGPASSWORD=apppassword psql -h 20.240.193.149 -U appuser -d appdb -c '\conninfo'
+      register: db_conn
+      failed_when: "'could not' in db_conn.stderr or db_conn.rc != 0"
+      changed_when: false
+
+    - name: Show DB connection result
+      debug:
+        var: db_conn.stdout_lines
+
+  handlers:
+    - name: restart spring
+      service:
+        name: spring
+        state: restarted
+      become: yes
+
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+      become: yes
