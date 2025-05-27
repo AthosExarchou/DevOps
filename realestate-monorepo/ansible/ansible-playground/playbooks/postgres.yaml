@@ -33,6 +33,21 @@
       when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '24.04'
       tags: [edit]
 
+    # - name: Force disconnect all users from appdb
+    #   postgresql_query:
+    #     db: postgres
+    #     query: >
+    #       SELECT pg_terminate_backend(pid)
+    #       FROM pg_stat_activity
+    #       WHERE datname = 'appdb' AND pid <> pg_backend_pid();
+    #   become_user: postgres
+
+    # - name: Drop appdb if it exists
+    #   postgresql_db:
+    #       name: appdb
+    #       state: absent
+    #   become_user: postgres
+
     - name: Create PostgreSQL user
       postgresql_user:
         name: appuser

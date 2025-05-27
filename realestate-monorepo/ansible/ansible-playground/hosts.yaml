@@ -2,13 +2,13 @@
 appservers:
   hosts:
     devops-vm-1:
-      ansible_host: az-devops
+      ansible_host: az-devops #"vim ~/.ssh/config", -> Host az-devops
       ansible_user: azureuser
       ansible_ssh_private_key_file: ~/.ssh/id_devops
     
 dbservers:
   hosts:    
     devops-vm-2:
-      ansible_host: az-db #"vim ~/.ssh/config", -> Host az-db
+      ansible_host: 20.240.193.149
       ansible_user: azureuser
       ansible_ssh_private_key_file: ~/.ssh/id_devops

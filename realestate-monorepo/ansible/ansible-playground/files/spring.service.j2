@@ -4,13 +4,23 @@ After=network.target
 
 [Service]
 User={{ ansible_user }}
-WorkingDirectory={{ appdir }}
-app_jar: ds-exc-2024-0.0.1-SNAPSHOT.jar
-ExecStart=/usr/bin/java -jar {{ appdir }}/target/{{ app_jar }}
+WorkingDirectory={{ appdir }}/ds-exc-2024/target
+ExecStart=/usr/bin/java -jar ds-exc-2024-0.0.1-SNAPSHOT.jar
 SuccessExitStatus=143
 Restart=always
 RestartSec=5
-Environment=SPRING_PROFILES_ACTIVE=prod
+
+#Environment overrides
+Environment=SPRING_DATASOURCE_URL=jdbc:postgresql://20.240.193.149:5432/appdb
+Environment=SPRING_DATASOURCE_USERNAME=appuser
+Environment=SPRING_DATASOURCE_PASSWORD=apppassword
+
+# Connection Pool Health
+Environment=SPRING_DATASOURCE_TEST_ON_BORROW=true
+Environment=SPRING_DATASOURCE_VALIDATION_QUERY=SELECT 1
+Environment=SPRING_DATASOURCE_MAXIMUM_POOL_SIZE=10
+Environment=SPRING_DATASOURCE_MINIMUM_IDLE=2
+Environment=SPRING_DATASOURCE_IDLE_TIMEOUT=30000
 
 [Install]
 WantedBy=multi-user.target

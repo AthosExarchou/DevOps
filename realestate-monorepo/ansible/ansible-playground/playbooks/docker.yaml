@@ -1,0 +1,45 @@
+---
+- name: Deploy application using Docker Compose
+  hosts: appservers
+  become: yes
+
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Start and enable Docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Install Docker Compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.24.2/docker-compose-linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Create app directory
+      file:
+        path: /opt/spring-app
+        state: directory
+
+    - name: Copy docker-compose.yml
+      copy:
+        src: ../files/docker-compose.yml
+        dest: /opt/spring-app/docker-compose.yml
+        mode: '0644'
+
+    - name: Run docker-compose
+      command: docker-compose up -d
+      args:
+        chdir: /opt/spring-app

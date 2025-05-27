@@ -15,62 +15,62 @@
         state: present
         update_cache: yes
       become: yes
-      register: apt_result
       retries: 5
-      delay: 30
-      until: apt_result is succeeded
+      delay: 10
+      register: result
+      until: result is succeeded
 
   vars:
     appdir: "{{ ansible_user_dir }}/spring-app"
+    project_root: "{{ appdir }}/ds-exc-2024"
     branch: "main"
+    app_jar: "ds-exc-2024-0.0.1-SNAPSHOT.jar"
 
   tasks:
+
     - name: Debug appdir
       debug:
-        msg: "App directory is {{ appdir }}"
+        msg: "App directory is {{ project_root }}"
 
     - name: Clone the Spring repository
       git:
-        repo: "https://github.com/AthosExarchou/ds-exc-2024.git"
+        repo: "https://github.com/AthosExarchou/DevOps.git"
         dest: "{{ appdir }}"
         version: "{{ branch }}"
         force: yes
 
-    - name: Build Spring application
-      block:
-        - name: Try to build the Spring application
-          command: ./mvnw package -Dmaven.test.skip
-          args:
-            chdir: "{{ appdir }}"
+    - name: Try to build the Spring application
+      command: ./mvnw package -Dmaven.test.skip
+      args:
+        chdir: "{{ project_root }}"
+      register: build_result
+      failed_when: false
 
-      rescue:
-        - name: Fetch SHA-512 checksum for Maven 3.9.9
-          get_url:
-            url: https://downloads.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.zip.sha512
-            dest: /tmp/maven_sha512.txt
-            validate_certs: yes
-            force: yes
+    - name: Fetch SHA-512 checksum for Maven 3.9.9
+      get_url:
+        url: https://downloads.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.zip.sha512
+        dest: /tmp/maven_sha512.txt
+        validate_certs: yes
+        force: yes
+      when: build_result.rc != 0
 
-        - name: Read the SHA-512 checksum from the file
-          command: cat /tmp/maven_sha512.txt
-          register: sha512_checksum
+    - name: Read the SHA-512 checksum from the file
+      command: cat /tmp/maven_sha512.txt
+      register: sha512_checksum
+      when: build_result.rc != 0
 
-        - name: Fix maven-wrapper.properties with correct SHA
-          replace:
-            path: "{{ appdir }}/.mvn/wrapper/maven-wrapper.properties"
-            regexp: '^distributionSha'
-            replace: "distributionSha512Sum={{ sha512_checksum.stdout }}"
+    - name: Fix maven-wrapper.properties with correct SHA
+      replace:
+        path: "{{ project_root }}/.mvn/wrapper/maven-wrapper.properties"
+        regexp: '^distributionSha.*'
+        replace: "distributionSha512Sum={{ sha512_checksum.stdout }}"
+      when: build_result.rc != 0
 
-        - name: Clean up SHA temp file
-          file:
-            path: /tmp/maven_sha512.txt
-            state: absent
-          when: sha512_checksum is defined
-
-        - name: Retry build after SHA fix
-          command: ./mvnw package -Dmaven.test.skip
-          args:
-            chdir: "{{ appdir }}"
+    - name: Retry build after SHA fix
+      command: ./mvnw package -Dmaven.test.skip
+      args:
+        chdir: "{{ project_root }}"
+      when: build_result.rc != 0
 
     - name: Install Spring systemd service
       template:
@@ -112,19 +112,6 @@
         state: absent
       become: yes
       notify: restart nginx
-
-    - name: Verify database connection from Spring Boot server using psql
-      become: yes
-      become_user: azureuser
-      shell: |
-        PGPASSWORD=apppassword psql -h 20.240.193.149 -U appuser -d appdb -c '\conninfo'
-      register: db_conn
-      failed_when: "'could not' in db_conn.stderr or db_conn.rc != 0"
-      changed_when: false
-
-    - name: Show DB connection result
-      debug:
-        var: db_conn.stdout_lines
 
   handlers:
     - name: restart spring
