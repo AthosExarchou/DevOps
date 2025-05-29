@@ -28,6 +28,14 @@
 
   tasks:
 
+    - name: Stop and remove Docker containers if running
+      shell: docker-compose down || true
+      args:
+        chdir: /opt/spring-app
+      when: ansible_facts['distribution'] == "Ubuntu"
+      ignore_errors: yes
+      tags: stop_docker
+
     - name: Debug appdir
       debug:
         msg: "App directory is {{ project_root }}"
@@ -38,6 +46,11 @@
         dest: "{{ appdir }}"
         version: "{{ branch }}"
         force: yes
+
+    - name: Ensure mvnw is executable
+      file:
+        path: "{{ project_root }}/mvnw"
+        mode: '0755'
 
     - name: Try to build the Spring application
       command: ./mvnw package -Dmaven.test.skip
@@ -77,8 +90,20 @@
         src: ../files/spring.service.j2
         dest: /etc/systemd/system/spring.service
       become: yes
-      notify: restart spring
 
+    - name: Always reload systemd and restart spring
+      block:
+        - name: Reload systemd
+          command: systemctl daemon-reload
+          become: yes
+
+        - name: Restart spring
+          service:
+            name: spring
+            state: restarted
+          become: yes
+      when: spring_restart_always | default(true)
+    
     - name: Enable and start Spring service
       service:
         name: spring
@@ -114,11 +139,6 @@
       notify: restart nginx
 
   handlers:
-    - name: restart spring
-      service:
-        name: spring
-        state: restarted
-      become: yes
 
     - name: restart nginx
       service:
