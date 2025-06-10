@@ -1,59 +1,64 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    IMAGE = "it2022134/ds-exc-2024:latest"
-  }
+    environment {
+        IMAGE = "it2022134/ds-exc-2024:latest"
+    }
 
-  stages {
-
-    stage('Checkout') {
-      steps {
-        git branch: 'main', url: 'https://github.com/AthosExarchou/DevOps.git'
-
-      }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'test', url: 'https://github.com/AthosExarchou/DevOps.git'
+            }
+        }
+        stage('Maven Build') {
+        steps {
+            dir('ds-exc-2024') {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
     }
 
     stage('Build Docker Image') {
-      steps {
-        sh 'docker build -t $IMAGE ./ds-exc-2024'
-      }
+        steps {
+            sh 'docker build -t $IMAGE ./ds-exc-2024'
+        }
     }
 
     stage('Push to Docker Hub') {
-      steps {
-        withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKER_PASSWORD')]) {
-          sh 'echo $DOCKER_PASSWORD | docker login -u it2022134 --password-stdin'
-          sh 'docker push $IMAGE'
+        steps {
+            withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKER_PASSWORD')]) {
+            sh 'echo $DOCKER_PASSWORD | docker login -u it2022134 --password-stdin'
+            sh 'docker push $IMAGE'
+            }
         }
-      }
     }
 
-    stage('Ansible Deploy (Plugin)') {
-      steps {
-        ansiblePlaybook(
-          playbook: '/var/lib/jenkins/workspace/ansible-project/playbooks/django-project-install.yml',
-          inventory: '/var/lib/jenkins/workspace/ansible-project/hosts.yml',
-          credentialsId: 'azure-ssh',
-          limit: 'gcloud_host'
-        )
-      }
-    }
+//     stage('Ansible Deploy (Plugin)') {
+//       steps {
+//         ansiblePlaybook(
+//           playbook: '/var/lib/jenkins/workspace/ansible-project/playbooks/django-project-install.yml',
+//           inventory: '/var/lib/jenkins/workspace/ansible-project/hosts.yml',
+//           credentialsId: 'azure-ssh',
+//           limit: 'gcloud_host'
+//         )
+//       }
+//     }
 
-    stage('Deploy to Docker VM') {
-      steps {
-        sh 'scp realestate-monorepo/ansible/ansible-playground/files/docker-compose.yml azureuser@20.240.186.65:/home/azureuser/'
-        sh 'ssh azureuser@20.240.186.65 "docker pull $IMAGE && docker compose -f /home/azureuser/docker-compose.yml up -d"'
-      }
-    }
+//     stage('Deploy to Docker VM') {
+//         steps {
+//             sh 'scp realestate-monorepo/ansible/ansible-playground/files/docker-compose.yml azureuser@20.240.186.65:/home/azureuser/'
+//             sh 'ssh azureuser@20.240.186.65 "docker pull $IMAGE && docker compose -f /home/azureuser/docker-compose.yml up -d"'
+//         }
+//     }
 
     stage('Deploy to Kubernetes') {
-      steps {
-        sh '''
-          kubectl set image deployment/ds-exec-deployment ds-exec-container=$IMAGE --namespace=default
-          kubectl rollout status deployment/ds-exec-deployment --namespace=default
-        '''
-      }
+        steps {
+            sh '''
+                kubectl set image deployment/ds-exec-deployment ds-exec-container=$IMAGE --namespace=default
+                kubectl rollout status deployment/ds-exec-deployment --namespace=default
+            '''
+            }
+        }
     }
-  }
 }
