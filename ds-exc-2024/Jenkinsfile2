@@ -1,0 +1,90 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE      = "it2022134/ds-exc-2024:latest"
+        KUBECONFIG = credentials('devops-microk8s-kubeconfig')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Παίρνουμε όλο το monorepo
+                git branch: 'test', url: 'https://github.com/AthosExarchou/DevOps.git'
+            }
+        }
+
+        stage('Maven Build') {
+            steps {
+                // Compiling της Java app
+                dir('ds-exc-2024') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                // Δημιουργούμε το Docker image
+                sh 'docker build -t $IMAGE ./ds-exc-2024'
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                // Push στο Docker Hub
+                withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                        echo $DOCKER_PASSWORD | docker login -u it2022134 --password-stdin
+                        docker push $IMAGE
+                    '''
+                }
+            }
+        }
+
+        // Αν θέλεις να τρέξεις Ansible playbook στο VM, μπορείς να ξε-σχολιάσεις:
+        // stage('Ansible Deploy') {
+        //   steps {
+        //     ansiblePlaybook(
+        //       playbook: 'ansible/playbooks/django-project-install.yml',
+        //       inventory: 'ansible/hosts.yml',
+        //       credentialsId: 'azure-ssh',
+        //       limit: 'gcloud_host'
+        //     )
+        //   }
+        // }
+
+        // Αντί για Docker Compose, τώρα πηγαίνουμε κατευθείαν σε k8s:
+
+        stage('Deploy DB') {
+            steps {
+                // Εφαρμόζουμε όλα τα db-YAML
+                dir('db') {
+                    sh 'kubectl apply -f .'
+                }
+            }
+        }
+
+        stage('Deploy App') {
+            steps {
+                // Εφαρμόζουμε όλα τα app-YAML
+                dir('app') {
+                    sh 'kubectl apply -f .'
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                // Αντί για full apply, μπορούμε να κάνουμε rolling update στο image
+                sh '''
+                    kubectl set image deployment/ds-exec-deployment \
+                      ds-exec-container=$IMAGE --namespace=default
+
+                    kubectl rollout status deployment/ds-exec-deployment \
+                      --namespace=default
+                '''
+            }
+        }
+    }
+}
