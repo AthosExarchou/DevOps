@@ -21,9 +21,9 @@ spec:
             - containerPort: 8080
           envFrom:
             - configMapRef:
-                name: app-config.yaml
+                name: app-config
             - secretRef:
-                name: app-secret.yaml
+                name: app-secret
           env:
             - name: SPRING_DATASOURCE_URL
               value: jdbc:postgresql://20.240.193.149:5432/appdb
