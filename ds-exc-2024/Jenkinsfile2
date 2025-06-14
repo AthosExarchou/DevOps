@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         IMAGE      = "it2022134/ds-exc-2024:latest"
-        KUBECONFIG = credentials('devops-microk8s-kubeconfig')
     }
 
     stages {
@@ -16,7 +15,6 @@ pipeline {
 
         stage('Maven Build') {
             steps {
-                // Compiling της Java app
                 dir('ds-exc-2024') {
                     sh 'mvn clean package -DskipTests'
                 }
@@ -25,14 +23,12 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                // Δημιουργούμε το Docker image
                 sh 'docker build -t $IMAGE ./ds-exc-2024'
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                // Push στο Docker Hub
                 withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKER_PASSWORD')]) {
                     sh '''
                         echo $DOCKER_PASSWORD | docker login -u it2022134 --password-stdin
@@ -41,7 +37,51 @@ pipeline {
                 }
             }
         }
+        stage('Install kubectl') {
+            steps {
+                sh '''
+                    sudo snap install kubectl --classic
+                    kubectl version --client
+                '''
+            }
+        }
 
+        // Αντί για Docker Compose, τώρα πηγαίνουμε κατευθείαν σε k8s:
+
+        stage('Deploy DB') {
+            steps {
+                sshagent(['azure-ssh-cred-id']) {
+                    sh '''
+                        cd realestate-monorepo/k8s/db
+                        sudo microk8s.kubectl apply -f .
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy APP') {
+            steps {
+                sshagent(['azure-ssh-cred-id']) {
+                    sh '''
+                        cd realestate-monorepo/k8s/app
+                        sudo microk8s.kubectl apply -f .
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                // Αντί για full apply, μπορούμε να κάνουμε rolling update στο image
+                sh '''
+                    sudo microk8s.kubectl set image deployment/app-deployment \
+                      app=$IMAGE --namespace=default
+
+                    sudo microk8s.kubectl rollout status deployment/app-deployment \
+                      --namespace=default
+                '''
+            }
+        }
         // Αν θέλεις να τρέξεις Ansible playbook στο VM, μπορείς να ξε-σχολιάσεις:
         // stage('Ansible Deploy') {
         //   steps {
@@ -53,38 +93,5 @@ pipeline {
         //     )
         //   }
         // }
-
-        // Αντί για Docker Compose, τώρα πηγαίνουμε κατευθείαν σε k8s:
-
-        stage('Deploy DB') {
-            steps {
-                // Εφαρμόζουμε όλα τα db-YAML
-                dir('db') {
-                    sh 'kubectl apply -f .'
-                }
-            }
-        }
-
-        stage('Deploy App') {
-            steps {
-                // Εφαρμόζουμε όλα τα app-YAML
-                dir('app') {
-                    sh 'kubectl apply -f .'
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                // Αντί για full apply, μπορούμε να κάνουμε rolling update στο image
-                sh '''
-                    kubectl set image deployment/ds-exec-deployment \
-                      ds-exec-container=$IMAGE --namespace=default
-
-                    kubectl rollout status deployment/ds-exec-deployment \
-                      --namespace=default
-                '''
-            }
-        }
     }
 }

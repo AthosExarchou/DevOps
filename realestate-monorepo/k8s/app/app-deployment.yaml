@@ -16,14 +16,14 @@ spec:
     spec:
       containers:
         - name: app
-          image: ghcr.io/it2022134/ds-exec-2024:latest
+          image: it2022134/ds-exec-2024:latest
           ports:
             - containerPort: 8080
           envFrom:
             - configMapRef:
-                name: app-config
+                name: app-config.yaml
             - secretRef:
-                name: app-secret
+                name: app-secret.yaml
           env:
             - name: SPRING_DATASOURCE_URL
               value: jdbc:postgresql://20.240.193.149:5432/appdb
