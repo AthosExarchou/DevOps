@@ -8,5 +8,5 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jdk
 WORKDIR /app
 COPY target/ds-exc-2024-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 8080
+EXPOSE 8280
 ENTRYPOINT ["java", "-jar", "app.jar"]

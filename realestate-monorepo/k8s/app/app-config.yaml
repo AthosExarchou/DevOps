@@ -4,6 +4,6 @@ metadata:
   name: app-config
 data:
   SPRING_PROFILES_ACTIVE: "prod"
-  SERVER_PORT:           "8080"
+  SERVER_PORT:           "8280"
   LOGGING_LEVEL_ROOT:    "INFO"
   PAYMENT_SERVICE_URL:   "https://payments.mycompany.com/api"
