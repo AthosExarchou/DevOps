@@ -4,11 +4,13 @@
   become: yes
 
   tasks:
-    - name: Stop systemd-based Spring service if running
-      service:
-        name: spring
-        state: stopped
-      ignore_errors: yes
+
+    # stops systemd
+    # - name: Stop systemd-based Spring service if running
+    #   service:
+    #     name: spring
+    #     state: stopped
+    #   ignore_errors: yes
 
     - name: Install Docker
       apt:

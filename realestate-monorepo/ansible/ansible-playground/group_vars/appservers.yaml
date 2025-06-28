@@ -3,13 +3,13 @@ branch: "main"
 
 appuser: "{{ ansible_user_id }}"
 appgroup: "{{ ansible_user_gid }}"
-app_port: 8080
+app_port: 8380
 
 app_jar: ds-exc-2024-0.0.1-SNAPSHOT.jar
 
-backend_server_url: "http://20.240.186.65:8080" # Spring Boot app's external address
+backend_server_url: "http://20.240.186.65:8380" # Spring Boot app's external address
 app:
-  VITE_BACKEND: "http://20.240.186.65:8080" # What the frontend uses to call backend
+  VITE_BACKEND: "http://20.240.186.65:8380" # What the frontend uses to call backend
   env:
     server.port: "{{ app_port }}"
     spring.datasource.username: appuser

@@ -28,13 +28,14 @@
 
   tasks:
 
-    - name: Stop and remove Docker containers if running
-      shell: docker-compose down || true
-      args:
-        chdir: /opt/spring-app
-      when: ansible_facts['distribution'] == "Ubuntu"
-      ignore_errors: yes
-      tags: stop_docker
+    # closes docker if up
+    # - name: Stop and remove Docker containers if running
+    #   shell: docker-compose down || true
+    #   args:
+    #     chdir: /opt/spring-app
+    #   when: ansible_facts['distribution'] == "Ubuntu"
+    #   ignore_errors: yes
+    #   tags: stop_docker
 
     - name: Debug appdir
       debug:
