@@ -1,13 +1,20 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: app-ingress
+  name: app-ingress-ssl
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
   ingressClassName: public
+  tls:
+    - hosts:
+        - realestate.ip-ddns.com
+      secretName: app-production-certificate
   rules:
-    - host: "realestate.ip-ddns.com"
+    - host: realestate.ip-ddns.com
       http:
         paths:
           - path: /
