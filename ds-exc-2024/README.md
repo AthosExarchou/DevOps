@@ -1,4 +1,4 @@
-# Distributed Systems Group Project 2024-2025 - Basic DevOps concepts and tools Group Project 2025-2026
+# Distributed Systems Group Project 2024-2025 - Basic DevOps concepts and tools Group Project 2025
 
 This application was initially developed as a group project for the **Distributed Systems** course at [Harokopio University of Athens – Dept. of Informatics and Telematics](https://www.dit.hua.gr).
 It was later further developed as part of the **Basic DevOps Concepts and Tools** course.

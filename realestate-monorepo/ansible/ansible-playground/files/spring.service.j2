@@ -11,6 +11,7 @@ Restart=always
 RestartSec=5
 
 #Environment overrides
+Environment=SERVER_PORT={{ app_port }}
 Environment=SPRING_DATASOURCE_URL=jdbc:postgresql://20.240.193.149:5432/appdb
 Environment=SPRING_DATASOURCE_USERNAME=appuser
 Environment=SPRING_DATASOURCE_PASSWORD=apppassword

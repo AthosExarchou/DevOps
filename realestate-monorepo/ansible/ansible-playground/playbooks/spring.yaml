@@ -53,7 +53,7 @@
         path: "{{ project_root }}/mvnw"
         mode: '0755'
 
-    - name: Try to build the Spring application
+    - name: Build the Spring application
       command: ./mvnw package -Dmaven.test.skip
       args:
         chdir: "{{ project_root }}"
