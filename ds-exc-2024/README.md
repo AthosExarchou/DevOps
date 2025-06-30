@@ -101,7 +101,7 @@ Before running the application, ensure you configure the `application.properties
 ## Contact
 For support or inquiries, please contact us at:
 - **Email**: realestate2025project@gmail.com
-- **Website**: [localhost:8080](http://localhost:8080/)
+- **Website**: [http://realestate.ip-ddns.com:8080](http://realestate.ip-ddns.com:8080/)
 
 ## Authors
 
