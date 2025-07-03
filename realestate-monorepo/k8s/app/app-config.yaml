@@ -3,6 +3,7 @@ kind: ConfigMap
 metadata:
   name: app-config
 data:
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://127.0.0.1:65432/appdb"
   SPRING_PROFILES_ACTIVE: "prod"
   SERVER_PORT:           "8280"
   LOGGING_LEVEL_ROOT:    "INFO"
@@ -11,3 +12,4 @@ data:
   SPRING_SECURITY_USER_NAME:        "admin"
   SPRING_SECURITY_USER_PASSWORD:    "admin"
   MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info"
+  
