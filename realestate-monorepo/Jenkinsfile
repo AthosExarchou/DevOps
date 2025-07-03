@@ -10,7 +10,7 @@ pipeline {
             steps {
 		        git(
       	            url: 'https://github.com/AthosExarchou/DevOps.git',
-      		        branch: 'test'
+      		        branch: 'main'
     		    )
             }
         }
