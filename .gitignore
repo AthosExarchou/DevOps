@@ -6,6 +6,9 @@ target/
 *.ear
 *.iml
 *.log
+.mvn/
+mvnw
+mvnw.cmd
 
 # IDEs & Editors
 # IntelliJ IDEA
