@@ -1,0 +1,46 @@
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+*.log
+
+# IDEs & Editors
+# IntelliJ IDEA
+.idea/
+*.iws
+*.ipr
+*.iml
+
+# VS Code
+.vscode/
+.history/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Ansible
+*.retry
+
+# Docker
+*.pid
+*.seed
+.env
+docker-compose.override.yml
+*.log
+
+# Build / Temp
+/tmp
+*.out
+
+# Misc
+*.bak
+*.swp

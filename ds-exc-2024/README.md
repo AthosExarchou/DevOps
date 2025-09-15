@@ -1,9 +1,28 @@
-# Distributed Systems Group Project 2024-2025 - Basic DevOps concepts and tools Group Project 2025
+# Distributed Systems Group Project 2024–2025
+### Basic DevOps Concepts and Tools – Group Project 2025
 
 This application was initially developed as a group project for the **Distributed Systems** course at [Harokopio University of Athens – Dept. of Informatics and Telematics](https://www.dit.hua.gr).
 It was later further developed as part of the **Basic DevOps Concepts and Tools** course.
 
+---
+
 # Apartment Rental Management System
+
+## Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Email Notifications](#email-notifications)
+- [Requirements](#requirements)
+- [Installation](#installation-backend-application)
+- [Configuration](#configuration)
+- [Usage Instructions](#usage-instructions)
+- [Role Management](#role-management)
+- [Contact](#contact)
+- [Authors](#authors)
+- [License](#license)
+- [Back to Main Project](../README.md)
+
+---
 
 ## Overview
 The Apartment Rental Application is a web-based platform that allows users to:
@@ -12,6 +31,8 @@ The Apartment Rental Application is a web-based platform that allows users to:
 - Submit new apartments by providing necessary details.
 - Manage user roles (e.g., User, Owner, Tenant).
 
+---
+
 ## Features
 - **View Apartments**: Browse the list of available apartments.
 - **Submit Apartments**: Users can create new apartments by submitting their details.
@@ -19,8 +40,12 @@ The Apartment Rental Application is a web-based platform that allows users to:
 - **Tenant Management**: Users renting apartments for the first time automatically get assigned the `ROLE_TENANT` role and are prompted to provide their details to become tenants.
 - **Access Control**: Role-based access ensures only authorized users can perform certain actions.
 
+---
+
 ## Email Notifications
-The platform provides automatic email notifications to improve user engagement and administrative transparency. Emails are sent for the following actions:
+The platform provides automatic email notifications to improve user engagement and administrative transparency.
+
+Emails are sent for the following actions:
 - **New User Registration** – A welcome message is sent upon account creation.
 - **Account Deletion** – A notice is sent when a user account is deleted by the admin.
 - **User Info Update** – A confirmation email is sent when personal user information is changed by the admin.
@@ -31,26 +56,45 @@ The platform provides automatic email notifications to improve user engagement a
 
 All emails are sent using HTML templates for a professional and user-friendly look and feel.
 
+---
+
 ## Requirements
 To run this application, ensure you have the following installed:
-- **Java**: Version 21 or higher.
-- **Spring Boot**: Version 3.x.
-- **Thymeleaf**: For front-end templates.
-- **Database**: any (for development).
+- **Java**: Version 21 or higher
+- **Spring Boot**: Version 3.x
+- **Maven**: For building and packaging
+- **Thymeleaf**: For front-end templates
+- **Database**: PostgreSQL (default in production), any SQL DB for development
 
-## Installation
+---
+
+## Installation (Backend Application)
 1. Clone the repository:
    ```bash
    git clone https://github.com/AthosExarchou/ds-exc-2024.git
+   cd ds-exc-2024
    ```
 2. Open 'ds-exc-2024' in your preferred IDE
 3. Press 'Run' to boot the application
-4. Open your preferred browser
-5. Enter http://localhost:8080/
+    > Or, via terminal, you can run: `mvn spring-boot:run`
+4. Access the app in your browser at http://localhost:8080/
+
+### Production (packaged JAR)
+
+1. Package the application:
+    ```bash
+    mvn clean package -DskipTests
+    ```
+2. Run the JAR:
+    ```bash
+    java -jar target/ds-exc-2024-0.0.1-SNAPSHOT.jar
+    ```
+
+---
 
 ## Configuration
 
-Before running the application, ensure you configure the `application.properties` file. Below are the required properties:
+Before running the application, ensure you edit `src/main/resources/application.properties` or override with environment variables.
 
 ### Required Properties:
 
@@ -58,12 +102,14 @@ Before running the application, ensure you configure the `application.properties
    ```properties
    spring.application.name=<Your Application Name>
    server.port=8080
+   ```
 2. **Database Connection**
    ```properties
    spring.datasource.username=<DATABASE_USERNAME>
    spring.datasource.password=<DATABASE_PASSWORD>
-   spring.datasource.url=jdbc:mysql://<HOST>:<PORT>/<DATABASE>
-3. **Gmail SMTP Settings (for Email Notifications)**   
+   spring.datasource.url=jdbc:mysql://<HOST>:<PORT>/<DB_NAME>
+   ```
+3. **Gmail SMTP Settings (Email Notifications)**
    ```properties
    spring.mail.host=smtp.gmail.com
    spring.mail.port=587
@@ -72,6 +118,9 @@ Before running the application, ensure you configure the `application.properties
    spring.mail.protocol=smtp
    spring.mail.properties.mail.smtp.auth=true
    spring.mail.properties.mail.smtp.starttls.enable=true
+   ```
+
+---
 
 ## Usage Instructions
 
@@ -90,18 +139,24 @@ Before running the application, ensure you configure the `application.properties
 5. Submit the form to make the apartment available for rent (will first have to be approved by the administrator).
 
 ### Access Restrictions
-- Only owners can delete apartments they have created.
-- Tenants can only rent apartments that are available.
+- Only owners can delete their own apartments.
+- Tenants can only apply for unoccupied apartments.
+
+---
 
 ## Role Management
 - **Users**: Default role upon registration.
-- **Owners**: Assigned automatically when a user creates their first apartment.
-- **Tenants**: Assigned when a user applies to rent an apartment for the first time.
+- **Owners**: Assigned automatically on first apartment creation.
+- **Tenants**: Assigned automatically on first rental application.
+
+---
 
 ## Contact
-For support or inquiries, please contact us at:
+For support or inquiries:
 - **Email**: realestate2025project@gmail.com
 - **Website**: [http://realestate.ip-ddns.com:8080](http://realestate.ip-ddns.com:8080/)
+
+---
 
 ## Authors
 
@@ -111,3 +166,13 @@ For support or inquiries, please contact us at:
 | it22150      | Christos Kalamatianos         | DevOps course                       |
 | it22149      | Alexandros-Georgios Zarkalis  | Distributed Systems course          |
 
+---
+
+## License
+This project is licensed under the **MIT License**.
+
+---
+
+## Back to Main Project
+
+For DevOps, CI/CD, Docker, Ansible, Jenkins, and Kubernetes integration, see the [Main README](../README.md)
