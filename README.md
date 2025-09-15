@@ -69,7 +69,7 @@ A Jenkins pipeline (Jenkinsfile) should include the following stages:
 ### Project Structure
 
 ```text
-DevOps-test/
+DevOps/
 ├── ds-exc-2024/                # Spring Boot app
 │   ├── Dockerfile
 │   └── src/
