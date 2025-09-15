@@ -177,7 +177,7 @@ DevOps/ds-exc-2024/src/main/resources/
 │   ├── page_layout/       # Common layout fragments (header, footer, etc.)
 │   ├── tenant/            # Tenant-related pages
 │   └── index.html         # Homepage
-├── application.properties # App configuration (DB, SMTP, etc.)
+└── application.properties # App configuration (DB, SMTP, etc.)
 ```
 
 ---
